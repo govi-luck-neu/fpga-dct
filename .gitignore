@@ -1,0 +1,12 @@
+# ginore fir folder
+fir/*
+*.norm
+*.pgm
+*.png
+*.jpg
+*.o
+
+# data
+floating_coef.dat
+coef.dat
+out.dat
