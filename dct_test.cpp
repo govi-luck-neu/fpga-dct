@@ -59,16 +59,19 @@ void calc_stats(data_t A[], data_t C[], const int N){
   printf("MSE: %.6f\n", mse);
   printf("PSNR: %.6f\n", psnr);
 
-  if (acc_within3 > 50.0){
-    fprintf(stdout, "*******************************************\n");
-    fprintf(stdout, "PASS: ACCURACY ABOVE THRESHOLD!\n");
-    fprintf(stdout, "*******************************************\n");
+  float THRESHOLD = 90.0f;
+  printf("THRESHOLD: %.2f%\n", THRESHOLD);
+  if (acc_within3 > THRESHOLD){
+    printf("*******************************************\n");
+    printf("PASS: % PIXELS WITHIN ±3 ABOVE THRESHOLD!\n");
+    printf("*******************************************\n");
   } else {
-   	fprintf(stdout, "*******************************************\n");
-   	fprintf(stdout, "FAIL: ACCURACY TOO LOW!\n");
-   	fprintf(stdout, "*******************************************\n");
+    printf("*******************************************\n");
+    printf("FAIL: % PIXELS WITHIN ±3 BELOW THRESHOLD!\n");
+    printf("*******************************************\n");
   }
 }
+
 
 int main () {
   FILE *fp, *fin, *fcoef;
