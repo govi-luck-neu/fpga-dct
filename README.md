@@ -7,4 +7,16 @@ or create vitis component using function files and test bench with dct_test.cpp 
 
 testing update
 
-git branch
+git branch/status
+
+# swtich to branch
+git checkout project-update2 
+git add.
+git commit -m ""
+git push
+
+# switch to main and upidate with branch
+git checkout main
+git pull origin main
+git merge project-update2
+git push origin main
