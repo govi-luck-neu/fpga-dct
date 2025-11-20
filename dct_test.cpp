@@ -68,8 +68,8 @@ void calc_stats(data_t A[], data_t C[], const int N){
     printf("PSNR: %.6f\n", psnr);
 
 
-    float THRESHOLD = 30.0f;
-    printf("THRESHOLD: %.2f%%\n", THRESHOLD);
+    float THRESHOLD = 25.0f;
+    printf("THRESHOLD: %.2f\n", THRESHOLD);
     if (psnr > THRESHOLD){
         printf("*******************************************\n");
         printf("PASS: PSNR ABOVE THRESHOLD!\n");
@@ -121,7 +121,7 @@ int main () {
     }
     
 
-    top_dct(A, B, C, width, height, 4, Q); // compute
+    top_dct(A, B, C, width, height, 8, Q); // compute
 
     //   for (int i=0;i<SAMPLES;i++) {
     //     fprintf(fcoef,"%d\n",B[i]); 

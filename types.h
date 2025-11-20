@@ -15,5 +15,5 @@ typedef double calc_t;
 #endif
 
 #ifndef AP
-#define AP 64
+#define AP 256
 #endif

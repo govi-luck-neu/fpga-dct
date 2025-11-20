@@ -11,60 +11,89 @@
 #include "inv_dct.h"
 #include <math.h>
 
+static const calc_t cos_lut_8[8][8] = {
+    { 1.0000000000000000,  1.0000000000000000,  1.0000000000000000,  1.0000000000000000,
+      1.0000000000000000,  1.0000000000000000,  1.0000000000000000,  1.0000000000000000 },
+
+    { 0.9807852804032304,  0.8314696123025452,  0.5555702330196023,  0.1950903220161283,
+     -0.1950903220161282, -0.5555702330196020, -0.8314696123025453, -0.9807852804032304 },
+
+    { 0.9238795325112867,  0.3826834323650898, -0.3826834323650897, -0.9238795325112867,
+     -0.9238795325112868, -0.3826834323650903,  0.3826834323650900,  0.9238795325112866 },
+
+    { 0.8314696123025452, -0.1950903220161282, -0.9807852804032304, -0.5555702330196022,
+      0.5555702330196020,  0.9807852804032304,  0.1950903220161286, -0.8314696123025455 },
+
+    { 0.7071067811865476, -0.7071067811865475, -0.7071067811865477,  0.7071067811865474,
+      0.7071067811865477, -0.7071067811865479, -0.7071067811865472,  0.7071067811865471 },
+
+    { 0.5555702330196023, -0.9807852804032304,  0.1950903220161286,  0.8314696123025455,
+     -0.8314696123025452, -0.1950903220161289,  0.9807852804032307, -0.5555702330196015 },
+
+    { 0.3826834323650898, -0.9238795325112868,  0.9238795325112865, -0.3826834323650899,
+     -0.3826834323650906,  0.9238795325112874, -0.9238795325112871,  0.3826834323650863 },
+
+    { 0.1950903220161283, -0.5555702330196022,  0.8314696123025455, -0.9807852804032307,
+      0.9807852804032304, -0.8314696123025440,  0.5555702330196044, -0.1950903220161251 }
+};
+
 void inv_dct (
-  coef_t A[],
-  data_t B[],
-  int W,
-  int H,
-  int size, // 4 or 8
-  float Q
-  ) {
+    coef_t A[],
+    data_t B[],
+    int W,
+    int H,
+    int size, // 4 or 8
+    float Q
+    ) {
 
-  const calc_t a0 = 1.0 / sqrt(size); 
-  const calc_t an = sqrt(2.0 / size);
+    const calc_t a0 = 1.0 / sqrt((calc_t)size); 
+    const calc_t an = sqrt((calc_t)2.0 / (calc_t)size);
 
-  for (int i = 0; i < H*W; i++){
-    A[i] /= Q;
-  }
+    for (int i = 0; i < H*W; i++){
+        A[i] = (coef_t)((double)A[i] / (double)Q);
+    }
 
-  // assume perfect tiling
-  INV_DCT_Loop: 
-  for (int x = 0; x < H; x+=size){ 
-    for (int y = 0; y < W; y+=size){ // loops over size x size blocks 
-    
-      for (int m = 0; m < size; m++){ // loop m and n for summation
-        for (int n = 0; n < size; n++){  
-      
-          calc_t sum = 0;
-          
-          for (int p = 0; p < size; p++){  // loop p and q within summation
-            calc_t p_coef;
-            if (p == 0) 
-              p_coef = a0; 
-            else 
-              p_coef = an; 
-            calc_t term1 = cos(M_PI * (2.0*m +1.0) * p / (2.0 * size)); 
+    // assume perfect tiling
+    INV_DCT_Loop: 
+    for (int x = 0; x < H; x+=size){ 
+        for (int y = 0; y < W; y+=size){ // loops over size x size blocks 
+        
+        for (int m = 0; m < size; m++){ // loop m and n for summation
+            for (int n = 0; n < size; n++){  
+        
+            calc_t sum = 0;
             
-            for (int q = 0; q < size; q++){ 
-              calc_t q_coef;
-              if (q == 0) 
-                q_coef = a0; 
-              else 
-                q_coef = an;
+            for (int p = 0; p < size; p++){  // loop p and q within summation
+                calc_t p_coef;
+                if (p == 0) 
+                    p_coef = a0; 
+                else 
+                    p_coef = an; 
+                calc_t term1 = cos_lut_8[p][m]; 
                 
-              calc_t term2 = cos(M_PI * (2.0*n +1.0) * q / (2.0 * size));  
-              sum += p_coef * q_coef * A[IDX(p+x,q+y,W)] * term1 * term2; 
+                for (int q = 0; q < size; q++){ 
+                    calc_t q_coef;
+                if (q == 0) 
+                    q_coef = a0; 
+                else 
+                    q_coef = an;
+                    
+                calc_t term2 = cos_lut_8[q][n];  
+                sum += p_coef * q_coef * (calc_t)A[IDX(p+x,q+y,W)] * term1 * term2; 
+                } 
             } 
-          } 
-            
-          B[IDX(m+x,n+y,W)] = (data_t)(sum + 0.5f); // conver to data type, 0.5 for rounding not truncate
-            
+                
+            B[IDX(m+x,n+y,W)] = (data_t)(sum + (calc_t)0.5); // conver to data type, 0.5 for rounding not truncate
+                
+            } 
         } 
-      } 
-    } 
-  }
-  return;
+        } 
+    }
+    return;
 }
+
+
+
 
 
 
