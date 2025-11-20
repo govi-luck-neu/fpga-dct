@@ -2,8 +2,8 @@
 fir/*
 *.norm
 *.pgm
-*.png
-*.jpg
+# *.png
+# *.jpg
 *.o
 
 # data

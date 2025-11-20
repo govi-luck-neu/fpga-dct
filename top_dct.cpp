@@ -11,18 +11,20 @@
 */
 #include "dct.h"
 #include "inv_dct.h"
+#include <cstdio>
 
 void top_dct (
-  data_t A[],
-  coef_t B[],
-  data_t C[],
-  int W,
-  int H,
-  int size,
-  float &Q
-  ) {
+    data_t A[],
+    coef_t B[],
+    data_t C[],
+    int W,
+    int H,
+    int size,
+    float &Q
+    ) {
 
-  dct(A, B, W, H, size, Q);
-  inv_dct(B, C, W, H, size, Q);
+    dct(A, B, W, H, size, Q);
+    printf("Q: %f \n", Q);
+    inv_dct(B, C, W, H, size, Q);
 
-  }
+}
