@@ -54,12 +54,12 @@ void calc_stats(data_t A[], data_t C[], const int N){
     size_t encoded_bytes   = N * 6 + sizeof(float); // coef + Q
     double pct_saved       =(1.0 - (double)encoded_bytes / (double)original_bytes) * 100.0;
 
-    printf("Pixels: %d \n", N); // not sure why need extra /n to print statement below
-    printf("Original (A) storage : %zu bytes\n",
-         original_bytes);
-    printf("DCT+Q (B + Q) storage: %zu bytes\n",
-         encoded_bytes);
-    printf("bytes saved:     %ld (%.2f%%)\n", original_bytes - encoded_bytes, pct_saved);
+    // printf("Pixels: %d \n", N); // not sure why need extra /n to print statement below
+    // printf("Original (A) storage : %zu bytes\n",
+    //      original_bytes);
+    // printf("DCT+Q (B + Q) storage: %zu bytes\n",
+    //      encoded_bytes);
+    //printf("bytes saved:     %ld (%.2f%%)\n", original_bytes - encoded_bytes, pct_saved);
     printf("Exact matches:   %d (%.2f%%)\n", exact, acc);
     printf("Within ±1:       %d (%.2f%%)\n", within1, acc_within1);
     printf("Within ±2:       %d (%.2f%%)\n", within2, acc_within2);
@@ -121,7 +121,7 @@ int main () {
     }
     
 
-    top_dct(A, B, C, width, height, 8, Q); // compute
+    top_dct(A, B, C, width, height, Q); // compute
 
     //   for (int i=0;i<SAMPLES;i++) {
     //     fprintf(fcoef,"%d\n",B[i]); 

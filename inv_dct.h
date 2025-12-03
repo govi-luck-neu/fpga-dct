@@ -12,7 +12,6 @@ void inv_dct (
   data_t B[],
   int W,
   int H,
-  int size,
   float Q
   );
 

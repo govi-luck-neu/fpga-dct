@@ -19,12 +19,11 @@ void top_dct (
     data_t C[],
     int W,
     int H,
-    int size,
     float &Q
     ) {
 
-    dct(A, B, W, H, size, Q);
+    dct(A, B, W, H, Q);
     printf("Q: %f \n", Q);
-    inv_dct(B, C, W, H, size, Q);
+    inv_dct(B, C, W, H, Q);
 
 }

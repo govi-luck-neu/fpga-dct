@@ -12,7 +12,14 @@
 #include "types.h"
 #include <math.h>
 
-static const calc_t cos_lut_8[8][8] = {
+void dct (
+    data_t A[],
+    coef_t B[],
+    int W,
+    int H,
+    float &Q
+    ) {
+    static const calc_t cos_lut_8[8][8] = {
     { 1.0000000000000000,  1.0000000000000000,  1.0000000000000000,  1.0000000000000000,
       1.0000000000000000,  1.0000000000000000,  1.0000000000000000,  1.0000000000000000 },
 
@@ -36,19 +43,12 @@ static const calc_t cos_lut_8[8][8] = {
 
     { 0.1950903220161283, -0.5555702330196022,  0.8314696123025455, -0.9807852804032307,
       0.9807852804032304, -0.8314696123025440,  0.5555702330196044, -0.1950903220161251 }
-};
-
-void dct (
-    data_t A[],
-    coef_t B[],
-    int W,
-    int H,
-    int size, // 4 or 8
-    float &Q
-    ) {
-
-    const calc_t a0 = (calc_t)1.0 / sqrt((calc_t)size); 
-    const calc_t an = sqrt((calc_t)2.0 / (calc_t)size);
+    };
+    #pragma HLS ARRAY_PARTITION variable=cos_lut_8 complete dim=1
+    #pragma HLS ARRAY_PARTITION variable=cos_lut_8 complete dim=2
+    int size = 8;
+    const calc_t a0 = (calc_t)1.0 / (calc_t)sqrt((double)size); 
+    const calc_t an = (calc_t)sqrt((double)2.0 / (double)size);
     float max = 0.0f;
     // assume perfect tiling
     DCT_Loop: 
@@ -56,40 +56,38 @@ void dct (
         for (int y = 0; y < W; y+=size){ // loops over size x size blocks 
         
             for (int p = 0; p < size; p++){ // loop p idx and get coef for block
-                calc_t p_coef;
-                if (p == 0) 
-                    p_coef = a0; 
-                else 
-                    p_coef = an; 
+                calc_t p_coef = (p == 0) ? a0 : an; 
                 
                 for (int q = 0; q < size; q++){ // loop q idx and get coef for block
-                    calc_t q_coef;
-                    if (q == 0) 
-                        q_coef = a0; 
-                    else 
-                        q_coef = an; 
-                        
+                    #pragma HLS PIPELINE // pipeline per coefficient
+                    
+                    calc_t q_coef = (q == 0) ? a0 : an; 
                     calc_t sum = 0;
                     
                     for (int m = 0; m < size; m++){ // loop m and n for summation
                         calc_t term1 = cos_lut_8[p][m];
                         
                         for (int n = 0; n < size; n++){ 
+                        #pragma HLS UNROLL factor=8
                             calc_t term2 = cos_lut_8[q][n]; 
                             sum += (calc_t)A[IDX(m+x,n+y,W)] * term1 * term2; 
                         } 
                     } 
                     B[IDX(p+x,q+y,W)] = (coef_t)(p_coef * q_coef * sum); // conver to coef type
-                    if (B[IDX(p+x,q+y,W)] > max) {max = B[IDX(p+x,q+y,W)];}
-                    if (-B[IDX(p+x,q+y,W)] > max) {max = -B[IDX(p+x,q+y,W)];}
                 } 
             } 
         } 
+    }
+    // get max
+    for (int i = 0; i < H*W; i++){
+        if (B[i] > max) {max = B[i];}
+        if (-B[i] > max) {max = -B[i];}
     }
     
     Q = AP / max;
     Quant_Loop:
     for (int i = 0; i < H*W; i++){
+    #pragma HLS PIPELINE II=1
         B[i] = (coef_t)(Q * B[i]);
     }
     return;

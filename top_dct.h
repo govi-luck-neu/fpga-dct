@@ -16,7 +16,6 @@ void top_dct (
   data_t C[],
   int W,
   int H,
-  int size,
   float &Q
   );
 

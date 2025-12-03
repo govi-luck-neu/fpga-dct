@@ -11,7 +11,15 @@
 #include "inv_dct.h"
 #include <math.h>
 
-static const calc_t cos_lut_8[8][8] = {
+void inv_dct (
+    
+    coef_t A[],
+    data_t B[],
+    int W,
+    int H,
+    float Q
+    ) {
+    static const calc_t cos_lut_8[8][8] = {
     { 1.0000000000000000,  1.0000000000000000,  1.0000000000000000,  1.0000000000000000,
       1.0000000000000000,  1.0000000000000000,  1.0000000000000000,  1.0000000000000000 },
 
@@ -35,58 +43,43 @@ static const calc_t cos_lut_8[8][8] = {
 
     { 0.1950903220161283, -0.5555702330196022,  0.8314696123025455, -0.9807852804032307,
       0.9807852804032304, -0.8314696123025440,  0.5555702330196044, -0.1950903220161251 }
-};
+    };
+    #pragma HLS ARRAY_PARTITION variable=cos_lut_8 complete dim=1
+    #pragma HLS ARRAY_PARTITION variable=cos_lut_8 complete dim=2
+    int size = 8;
+    const calc_t a0 = calc_t(1.0 / sqrt((double)size)); 
+    const calc_t an = (calc_t)sqrt((double)2.0 / (double)size);
 
-void inv_dct (
-    coef_t A[],
-    data_t B[],
-    int W,
-    int H,
-    int size, // 4 or 8
-    float Q
-    ) {
-
-    const calc_t a0 = 1.0 / sqrt((calc_t)size); 
-    const calc_t an = sqrt((calc_t)2.0 / (calc_t)size);
-
+    Quant_Loop:
     for (int i = 0; i < H*W; i++){
-        A[i] = (coef_t)((double)A[i] / (double)Q);
+        #pragma HLS PIPELINE II=4
+        A[i] = A[i] / Q;
     }
 
     // assume perfect tiling
     INV_DCT_Loop: 
     for (int x = 0; x < H; x+=size){ 
         for (int y = 0; y < W; y+=size){ // loops over size x size blocks 
-        
-        for (int m = 0; m < size; m++){ // loop m and n for summation
-            for (int n = 0; n < size; n++){  
-        
-            calc_t sum = 0;
-            
-            for (int p = 0; p < size; p++){  // loop p and q within summation
-                calc_t p_coef;
-                if (p == 0) 
-                    p_coef = a0; 
-                else 
-                    p_coef = an; 
-                calc_t term1 = cos_lut_8[p][m]; 
-                
-                for (int q = 0; q < size; q++){ 
-                    calc_t q_coef;
-                if (q == 0) 
-                    q_coef = a0; 
-                else 
-                    q_coef = an;
+            for (int m = 0; m < size; m++){ // loop m and n for summation
+                for (int n = 0; n < size; n++){  
+                    #pragma HLS PIPELINE // per coefficient
+                    calc_t sum = 0;
                     
-                calc_t term2 = cos_lut_8[q][n];  
-                sum += p_coef * q_coef * (calc_t)A[IDX(p+x,q+y,W)] * term1 * term2; 
+                    for (int p = 0; p < size; p++){  // loop p and q within summation
+                        calc_t p_coef = (p == 0) ? a0 : an;
+                        calc_t term1 = cos_lut_8[p][m];
+                        
+                        for (int q = 0; q < size; q++){ 
+                        #pragma HLS UNROLL factor=8
+                            calc_t q_coef = (q == 0) ? a0 : an;
+                            calc_t term2 = cos_lut_8[q][n];  
+                            sum += p_coef * q_coef * (calc_t)A[IDX(p+x,q+y,W)] * term1 * term2; 
+                        } 
+                    } 
+                        
+                    B[IDX(m+x,n+y,W)] = (data_t)(sum + (calc_t)0.5); // conver to data type, 0.5 for rounding not truncate
                 } 
             } 
-                
-            B[IDX(m+x,n+y,W)] = (data_t)(sum + (calc_t)0.5); // conver to data type, 0.5 for rounding not truncate
-                
-            } 
-        } 
         } 
     }
     return;
