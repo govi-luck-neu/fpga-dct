@@ -21,6 +21,7 @@ git pull origin main
 git merge project-update2
 git push origin main
 
+# on build machine run to generate binary for U280
 source $XILINX_VITIS/settings64.sh
 source $XILINX_XRT/setup.sh
 
@@ -35,10 +36,12 @@ v++ -l -t hw \
     -o top_dct.hw.xclbin \
     top_dct.xo
 
-g++ -std=c++17 -O2 \
-    dct_test.cpp dct.cpp inv_dct.cpp top_dct.cpp \
-    -o dct_host
 
-copied to node
-then ran using
+# when on the U280
+git clone https://github.com/govi-luck-neu/fpga-dct.git
+
+generate host file
+g++ -std=c++17 -O2 dct_test.cpp dct.cpp inv_dct.cpp top_dct.cpp -o dct_host
+
+run using .xclbin file
 ./dct_host top_dct.hw.xclbin in.dat
